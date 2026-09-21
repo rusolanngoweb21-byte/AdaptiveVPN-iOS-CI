@@ -16,8 +16,19 @@ fail() {
 [[ "$LIBXRAY_APPLE_SHA256" =~ ^[0-9a-f]{64}$ ]] || fail "invalid Apple archive digest"
 
 command -v curl >/dev/null 2>&1 || fail "curl is required"
-command -v sha256sum >/dev/null 2>&1 || fail "sha256sum is required"
 command -v unzip >/dev/null 2>&1 || fail "unzip is required"
+
+verify_sha256() {
+  local expected="$1"
+  local file="$2"
+  if command -v sha256sum >/dev/null 2>&1; then
+    printf '%s  %s\n' "$expected" "$file" | sha256sum -c - >/dev/null 2>&1
+  elif command -v shasum >/dev/null 2>&1; then
+    [[ "$(shasum -a 256 "$file" | awk '{print $1}')" == "$expected" ]]
+  else
+    fail "sha256sum or shasum is required"
+  fi
+}
 command -v python3 >/dev/null 2>&1 || fail "python3 is required for XCFramework validation"
 
 if [[ -n "${XDG_CACHE_HOME:-}" ]]; then
@@ -33,7 +44,7 @@ archive="$CACHE_DIR/${LIBXRAY_VERSION}-${LIBXRAY_APPLE_ARCHIVE}"
 url="https://github.com/XTLS/libXray/releases/download/${LIBXRAY_VERSION}/${LIBXRAY_APPLE_ARCHIVE}"
 
 verify_archive() {
-  printf '%s  %s\n' "$LIBXRAY_APPLE_SHA256" "$archive" | sha256sum -c - >/dev/null 2>&1
+  verify_sha256 "$LIBXRAY_APPLE_SHA256" "$archive"
 }
 
 if [[ -f "$archive" ]] && ! verify_archive; then
@@ -44,7 +55,7 @@ if [[ ! -f "$archive" ]]; then
   tmp_archive="${archive}.tmp.$$"
   trap 'rm -f "$tmp_archive"' EXIT
   curl --proto '=https' --tlsv1.2 --retry 3 --retry-all-errors -fsSL "$url" -o "$tmp_archive"
-  printf '%s  %s\n' "$LIBXRAY_APPLE_SHA256" "$tmp_archive" | sha256sum -c - >/dev/null
+  verify_sha256 "$LIBXRAY_APPLE_SHA256" "$tmp_archive"
   mv "$tmp_archive" "$archive"
   trap - EXIT
 fi
