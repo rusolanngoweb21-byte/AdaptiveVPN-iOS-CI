@@ -1,0 +1,5 @@
+.DS_Store
+apps/ios/AdaptiveVPN.xcodeproj/
+apps/ios/Vendor/
+DerivedData/
+*.xcresult
