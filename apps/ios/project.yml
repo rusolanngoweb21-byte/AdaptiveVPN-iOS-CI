@@ -24,7 +24,12 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.adaptivevpn.ci
         PRODUCT_NAME: AdaptiveVPN
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        VERSIONING_SYSTEM: apple-generic
         GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        INFOPLIST_KEY_CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CODE_SIGN_ENTITLEMENTS: AdaptiveVPN/AdaptiveVPN.entitlements
         CODE_SIGN_STYLE: Automatic
         ENABLE_BITCODE: NO
@@ -46,6 +51,7 @@ targets:
         PRODUCT_NAME: AdaptiveVPNXrayTunnel
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
+        VERSIONING_SYSTEM: apple-generic
         INFOPLIST_FILE: XrayPacketTunnel/Info.plist
         CODE_SIGN_ENTITLEMENTS: XrayPacketTunnel/AdaptiveVPNXrayTunnel.entitlements
         CODE_SIGN_STYLE: Automatic
