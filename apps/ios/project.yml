@@ -26,6 +26,8 @@ targets:
         CODE_SIGN_ENTITLEMENTS: AdaptiveVPN/AdaptiveVPN.entitlements
         CODE_SIGN_STYLE: Automatic
         ENABLE_BITCODE: NO
+        ENABLE_TESTABILITY: YES
+        SWIFT_OPTIMIZATION_LEVEL: "-Onone"
     dependencies:
       - target: AdaptiveVPNXrayTunnel
         embed: true
@@ -61,6 +63,7 @@ targets:
         ENABLE_BITCODE: NO
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/AdaptiveVPN.app/AdaptiveVPN"
         BUNDLE_LOADER: "$(TEST_HOST)"
+        SWIFT_OPTIMIZATION_LEVEL: "-Onone"
     dependencies:
       - target: AdaptiveVPN
 
