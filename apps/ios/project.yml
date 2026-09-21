@@ -69,6 +69,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.adaptivevpn.ci.tests
         PRODUCT_NAME: AdaptiveVPNTests
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: YES
         ENABLE_BITCODE: NO
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/AdaptiveVPN.app/AdaptiveVPN"
