@@ -42,6 +42,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.adaptivevpn.ci.xray-tunnel
         PRODUCT_NAME: AdaptiveVPNXrayTunnel
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
         INFOPLIST_FILE: XrayPacketTunnel/Info.plist
         CODE_SIGN_ENTITLEMENTS: XrayPacketTunnel/AdaptiveVPNXrayTunnel.entitlements
         CODE_SIGN_STYLE: Automatic
