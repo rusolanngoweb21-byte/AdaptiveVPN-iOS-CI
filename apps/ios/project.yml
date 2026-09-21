@@ -1,0 +1,71 @@
+name: AdaptiveVPNCI
+
+options:
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: 5.0
+    IPHONEOS_DEPLOYMENT_TARGET: 17.0
+
+targets:
+  AdaptiveVPN:
+    type: application
+    platform: iOS
+    sources:
+      - path: AdaptiveVPN
+      - path: XrayShared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.adaptivevpn.ci
+        PRODUCT_NAME: AdaptiveVPN
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_ENTITLEMENTS: AdaptiveVPN/AdaptiveVPN.entitlements
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_BITCODE: NO
+    dependencies:
+      - target: AdaptiveVPNXrayTunnel
+        embed: true
+
+  AdaptiveVPNXrayTunnel:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: XrayPacketTunnel
+      - path: XrayShared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.adaptivevpn.ci.xray-tunnel
+        PRODUCT_NAME: AdaptiveVPNXrayTunnel
+        INFOPLIST_FILE: XrayPacketTunnel/Info.plist
+        CODE_SIGN_ENTITLEMENTS: XrayPacketTunnel/AdaptiveVPNXrayTunnel.entitlements
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_BITCODE: NO
+    dependencies:
+      - framework: Vendor/libxray/LibXray.xcframework
+
+  AdaptiveVPNTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: AdaptiveVPNTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.adaptivevpn.ci.tests
+        GENERATE_INFOPLIST_FILE: YES
+        ENABLE_BITCODE: NO
+    dependencies:
+      - target: AdaptiveVPN
+
+schemes:
+  AdaptiveVPN:
+    build:
+      targets:
+        AdaptiveVPN: all
+        AdaptiveVPNXrayTunnel: all
+        AdaptiveVPNTests: [test]
+    test:
+      targets:
+        - AdaptiveVPNTests
