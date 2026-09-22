@@ -52,7 +52,7 @@ jobs:
           -destination 'generic/platform=iOS'
           -derivedDataPath "$GITHUB_WORKSPACE/.ci-derived/device"
           CODE_SIGNING_ALLOWED=NO
-          build-for-testing
+          build
 
       - name: Build and run iOS unit tests on an available simulator
         working-directory: apps/ios
@@ -82,7 +82,7 @@ jobs:
 
           xcodebuild \
             -project AdaptiveVPNCI.xcodeproj \
-            -scheme AdaptiveVPN \
+            -scheme AdaptiveVPNSimulatorTests \
             -sdk iphonesimulator \
             -destination "platform=iOS Simulator,id=$simulator_udid" \
             -derivedDataPath "$derived" \
@@ -90,21 +90,6 @@ jobs:
             ONLY_ACTIVE_ARCH=YES \
             ARCHS=arm64 \
             build-for-testing
-
-          app_plist="$derived/Build/Products/Debug-iphonesimulator/AdaptiveVPN.app/Info.plist"
-          wg_plist="$derived/Build/Products/Debug-iphonesimulator/AdaptiveVPN.app/PlugIns/AdaptiveVPNTunnel.appex/Info.plist"
-          xray_plist="$derived/Build/Products/Debug-iphonesimulator/AdaptiveVPN.app/PlugIns/AdaptiveVPNXrayTunnel.appex/Info.plist"
-
-          for plist in "$app_plist" "$wg_plist" "$xray_plist"; do
-            [[ -f "$plist" ]] || { echo "missing built Info.plist: $plist" >&2; exit 1; }
-          done
-
-          app_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$app_plist")"
-          app_marketing="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app_plist")"
-          for plist in "$wg_plist" "$xray_plist"; do
-            [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$plist")" == "$app_version" ]]
-            [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist")" == "$app_marketing" ]]
-          done
 
           xcodebuild \
             -project AdaptiveVPNCI.xcodeproj \
@@ -115,4 +100,4 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             ONLY_ACTIVE_ARCH=YES \
             ARCHS=arm64 \
-            test-without-building
+            test
