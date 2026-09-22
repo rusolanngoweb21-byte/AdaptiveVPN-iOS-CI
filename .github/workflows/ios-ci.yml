@@ -87,6 +87,8 @@ jobs:
             -destination "platform=iOS Simulator,id=$simulator_udid" \
             -derivedDataPath "$derived" \
             CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=YES \
+            ARCHS=arm64 \
             build-for-testing
 
           app_plist="$derived/Build/Products/Debug-iphonesimulator/AdaptiveVPN.app/Info.plist"
@@ -111,4 +113,6 @@ jobs:
             -destination "platform=iOS Simulator,id=$simulator_udid" \
             -derivedDataPath "$derived" \
             CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=YES \
+            ARCHS=arm64 \
             test-without-building
