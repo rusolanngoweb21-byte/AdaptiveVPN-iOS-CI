@@ -30,14 +30,14 @@ enum WireGuardConfiguration {
 
         return """
         [Interface]
-        PrivateKey = (privateKeyPlaceholder)
-        Address = (address)
-        DNS = (dns.joined(separator: ", "))
-        MTU = (mtu)
+        PrivateKey = \(privateKeyPlaceholder)
+        Address = \(address)
+        DNS = \(dns.joined(separator: ", "))
+        MTU = \(mtu)
 
         [Peer]
-        PublicKey = (node.publicKey)
-        Endpoint = (node.endpointHost):(node.endpointPort)
+        PublicKey = \(node.publicKey)
+        Endpoint = \(node.endpointHost):\(node.endpointPort)
         AllowedIPs = 0.0.0.0/0, ::/0
         PersistentKeepalive = 25
         """
