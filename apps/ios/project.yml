@@ -114,8 +114,6 @@ targets:
       - path: AdaptiveVPN
       - path: Shared
       - path: XrayShared
-    resources:
-      - path: AdaptiveVPN/Resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.adaptivevpn.ci.simulator-host
