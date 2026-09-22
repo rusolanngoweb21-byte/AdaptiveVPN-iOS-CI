@@ -102,6 +102,36 @@ targets:
     dependencies:
       - framework: Vendor/libxray/LibXray.xcframework
 
+  # Simulator-only host for unit tests. It deliberately does not embed the
+  # production WireGuard/Xray packet-tunnel extensions: the real extensions
+  # are compiled and linked by the generic-device gate above, while simulator
+  # tests exercise app/shared policy code without trying to link the
+  # iphoneos-only WireGuard Go bridge into an iOS Simulator binary.
+  AdaptiveVPNSimulatorHost:
+    type: application
+    platform: iOS
+    sources:
+      - path: AdaptiveVPN
+      - path: Shared
+      - path: XrayShared
+    resources:
+      - path: AdaptiveVPN/Resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.adaptivevpn.ci.simulator-host
+        PRODUCT_NAME: AdaptiveVPNTestHost
+        PRODUCT_MODULE_NAME: AdaptiveVPN
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        VERSIONING_SYSTEM: apple-generic
+        SWIFT_VERSION: 5.0
+        INFOPLIST_FILE: AdaptiveVPN/Info.plist
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_BITCODE: NO
+        ENABLE_TESTABILITY: YES
+        SWIFT_OPTIMIZATION_LEVEL: "-Onone"
+        TARGETED_DEVICE_FAMILY: "1,2"
+
   AdaptiveVPNTests:
     type: bundle.unit-test
     platform: iOS
@@ -117,10 +147,10 @@ targets:
         ENABLE_BITCODE: NO
         ENABLE_TESTABILITY: YES
         SWIFT_OPTIMIZATION_LEVEL: "-Onone"
-        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/AdaptiveVPN.app/AdaptiveVPN"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/AdaptiveVPNTestHost.app/AdaptiveVPNTestHost"
         BUNDLE_LOADER: "$(TEST_HOST)"
     dependencies:
-      - target: AdaptiveVPN
+      - target: AdaptiveVPNSimulatorHost
 
 schemes:
   AdaptiveVPN:
@@ -129,6 +159,11 @@ schemes:
         AdaptiveVPN: all
         AdaptiveVPNTunnel: all
         AdaptiveVPNXrayTunnel: all
+
+  AdaptiveVPNSimulatorTests:
+    build:
+      targets:
+        AdaptiveVPNSimulatorHost: all
         AdaptiveVPNTests: [test]
     test:
       targets:
