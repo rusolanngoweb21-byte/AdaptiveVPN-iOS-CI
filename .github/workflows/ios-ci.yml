@@ -13,14 +13,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  ios-xray:
+  ios-full-client:
     runs-on: macos-15
-    timeout-minutes: 35
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Validate public mirror boundary
         run: bash apps/ios/scripts/verify-public-mirror.sh
+
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: "1.19.13"
+
+      - name: Prepare pinned WireGuardKit
+        working-directory: apps/ios
+        run: |
+          bash scripts/prepare-wireguard.sh
+          bash scripts/verify-wireguard-source.sh
 
       - name: Install pinned XcodeGen
         run: bash apps/ios/scripts/install-xcodegen.sh
@@ -32,7 +42,7 @@ jobs:
         working-directory: apps/ios
         run: xcodegen generate
 
-      - name: Build host app and Xray extension for generic iOS device
+      - name: Build app and both tunnel extensions for generic iOS device
         working-directory: apps/ios
         run: >
           xcodebuild
@@ -80,28 +90,19 @@ jobs:
             build-for-testing
 
           app_plist="$derived/Build/Products/Debug-iphonesimulator/AdaptiveVPN.app/Info.plist"
-          extension_plist="$derived/Build/Products/Debug-iphonesimulator/AdaptiveVPN.app/PlugIns/AdaptiveVPNXrayTunnel.appex/Info.plist"
+          wg_plist="$derived/Build/Products/Debug-iphonesimulator/AdaptiveVPN.app/PlugIns/AdaptiveVPNTunnel.appex/Info.plist"
+          xray_plist="$derived/Build/Products/Debug-iphonesimulator/AdaptiveVPN.app/PlugIns/AdaptiveVPNXrayTunnel.appex/Info.plist"
 
-          [[ -f "$app_plist" ]] || { echo "missing built app Info.plist" >&2; exit 1; }
-          [[ -f "$extension_plist" ]] || { echo "missing built Xray extension Info.plist" >&2; exit 1; }
+          for plist in "$app_plist" "$wg_plist" "$xray_plist"; do
+            [[ -f "$plist" ]] || { echo "missing built Info.plist: $plist" >&2; exit 1; }
+          done
 
           app_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$app_plist")"
-          extension_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$extension_plist")"
           app_marketing="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app_plist")"
-          extension_marketing="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$extension_plist")"
-
-          [[ -n "$app_version" && -n "$extension_version" ]] || {
-            echo "app/extension CFBundleVersion must be non-empty" >&2
-            exit 1
-          }
-          [[ "$app_version" == "$extension_version" ]] || {
-            echo "app/extension CFBundleVersion mismatch" >&2
-            exit 1
-          }
-          [[ "$app_marketing" == "$extension_marketing" ]] || {
-            echo "app/extension CFBundleShortVersionString mismatch" >&2
-            exit 1
-          }
+          for plist in "$wg_plist" "$xray_plist"; do
+            [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$plist")" == "$app_version" ]]
+            [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist")" == "$app_marketing" ]]
+          done
 
           xcodebuild \
             -project AdaptiveVPNCI.xcodeproj \

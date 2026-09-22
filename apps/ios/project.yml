@@ -1,9 +1,13 @@
 name: AdaptiveVPNCI
 
 options:
+  minimumXcodeGenVersion: 2.40.0
   deploymentTarget:
     iOS: "16.0"
-  createIntermediateGroups: true
+
+packages:
+  WireGuardKit:
+    path: Vendor/wireguard-apple
 
 settings:
   base:
@@ -14,11 +18,24 @@ settings:
     CURRENT_PROJECT_VERSION: "1"
 
 targets:
+  WireGuardGoBridgeiOS:
+    type: ""
+    platform: iOS
+    settings:
+      base:
+        SDKROOT: iphoneos
+        ENABLE_BITCODE: NO
+    legacy:
+      toolPath: /usr/bin/make
+      passSettings: true
+      workingDirectory: "$(PROJECT_DIR)/Vendor/wireguard-apple/Sources/WireGuardKitGo"
+
   AdaptiveVPN:
     type: application
     platform: iOS
     sources:
       - path: AdaptiveVPN
+      - path: Shared
       - path: XrayShared
     settings:
       base:
@@ -27,17 +44,41 @@ targets:
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
         VERSIONING_SYSTEM: apple-generic
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleShortVersionString: "$(MARKETING_VERSION)"
-        INFOPLIST_KEY_CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        SWIFT_VERSION: 5.0
+        INFOPLIST_FILE: AdaptiveVPN/Info.plist
         CODE_SIGN_ENTITLEMENTS: AdaptiveVPN/AdaptiveVPN.entitlements
         CODE_SIGN_STYLE: Automatic
         ENABLE_BITCODE: NO
         ENABLE_TESTABILITY: YES
         SWIFT_OPTIMIZATION_LEVEL: "-Onone"
+        TARGETED_DEVICE_FAMILY: "1,2"
     dependencies:
+      - target: AdaptiveVPNTunnel
+        embed: true
       - target: AdaptiveVPNXrayTunnel
         embed: true
+
+  AdaptiveVPNTunnel:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: PacketTunnel
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.adaptivevpn.ci.tunnel
+        PRODUCT_NAME: AdaptiveVPNTunnel
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        VERSIONING_SYSTEM: apple-generic
+        SWIFT_VERSION: 5.0
+        INFOPLIST_FILE: PacketTunnel/Info.plist
+        CODE_SIGN_ENTITLEMENTS: PacketTunnel/AdaptiveVPNTunnel.entitlements
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_BITCODE: NO
+    dependencies:
+      - target: WireGuardGoBridgeiOS
+      - package: WireGuardKit
 
   AdaptiveVPNXrayTunnel:
     type: app-extension
@@ -52,6 +93,7 @@ targets:
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
         VERSIONING_SYSTEM: apple-generic
+        SWIFT_VERSION: 5.0
         INFOPLIST_FILE: XrayPacketTunnel/Info.plist
         CODE_SIGN_ENTITLEMENTS: XrayPacketTunnel/AdaptiveVPNXrayTunnel.entitlements
         CODE_SIGN_STYLE: Automatic
@@ -73,9 +115,10 @@ targets:
         CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: YES
         ENABLE_BITCODE: NO
+        ENABLE_TESTABILITY: YES
+        SWIFT_OPTIMIZATION_LEVEL: "-Onone"
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/AdaptiveVPN.app/AdaptiveVPN"
         BUNDLE_LOADER: "$(TEST_HOST)"
-        SWIFT_OPTIMIZATION_LEVEL: "-Onone"
     dependencies:
       - target: AdaptiveVPN
 
@@ -84,6 +127,7 @@ schemes:
     build:
       targets:
         AdaptiveVPN: all
+        AdaptiveVPNTunnel: all
         AdaptiveVPNXrayTunnel: all
         AdaptiveVPNTests: [test]
     test:
