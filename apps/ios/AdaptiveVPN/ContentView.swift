@@ -116,11 +116,12 @@ struct ContentView: View {
             }
             .background(
                 LinearGradient(
-                    colors: [Color.blue.opacity(0.10), Color.white],
+                    colors: [Color.blue.opacity(0.16), Color.black],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
             )
         }
+        .preferredColorScheme(.dark)
     }
 }
