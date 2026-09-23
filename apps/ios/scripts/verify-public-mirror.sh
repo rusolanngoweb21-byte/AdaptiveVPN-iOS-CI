@@ -31,6 +31,9 @@ grep -Fq 'framework: Vendor/libxray/LibXray.xcframework' "$PROJECT" || fail "pin
 grep -Fq 'func reportVpnStatus' "$API_CLIENT" || fail "API client tunnel-status reporting is missing"
 grep -Fq 'await reportVpnStatus("connected")' "$APP_STATE" || fail "connected tunnel-status reporting is missing"
 grep -Fq 'statusTask' "$APP_STATE" || fail "fresh connected heartbeat task is missing"
+grep -Fq 'runtimeState()' "$APP_STATE" || fail "runtime tunnel-state reconciliation is missing"
+grep -Fq 'enum TunnelRuntimeState' "$TUNNEL_MANAGER" || fail "runtime tunnel-state model is missing"
+grep -Fq 'case .reasserting:' "$TUNNEL_MANAGER" || fail "reconnecting tunnel-state mapping is missing"
 grep -Fq 'waitForConnected' "$TUNNEL_MANAGER" || fail "real tunnel connection confirmation is missing"
 
 grep -Fq 'static let runtimeActivationEnabled = false' "$XRAY_MANAGER" || fail "REALITY activation gate must remain closed"

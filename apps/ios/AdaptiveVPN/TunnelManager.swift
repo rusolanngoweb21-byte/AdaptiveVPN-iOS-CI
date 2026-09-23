@@ -6,6 +6,14 @@ enum TunnelManagerError: Error {
     case managerUnavailable
 }
 
+enum TunnelRuntimeState: Equatable {
+    case disconnected
+    case connecting
+    case connected
+    case reconnecting
+    case error
+}
+
 @MainActor
 final class TunnelManager {
     static let shared = TunnelManager()
@@ -84,6 +92,35 @@ final class TunnelManager {
         manager.isOnDemandEnabled = false
         manager.onDemandRules = []
         try await save(manager)
+    }
+
+    func runtimeState() async -> TunnelRuntimeState {
+        do {
+            let managers = try await loadManagers()
+            guard let manager = managers.first(where: {
+                ($0.protocolConfiguration as? NETunnelProviderProtocol)?
+                    .providerBundleIdentifier == providerBundleIdentifier
+            }) else {
+                return .disconnected
+            }
+
+            switch manager.connection.status {
+            case .connected:
+                return .connected
+            case .connecting:
+                return .connecting
+            case .reasserting:
+                return .reconnecting
+            case .disconnected, .disconnecting:
+                return .disconnected
+            case .invalid:
+                return .error
+            @unknown default:
+                return .error
+            }
+        } catch {
+            return .error
+        }
     }
 
     private func waitForConnected(

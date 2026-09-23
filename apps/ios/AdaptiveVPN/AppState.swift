@@ -227,8 +227,29 @@ final class AppState: ObservableObject {
         statusTask = Task { [weak self] in
             while !Task.isCancelled {
                 guard let self, self.vpnConnected else { return }
-                await self.reportVpnStatus("connected")
-                try? await Task.sleep(nanoseconds: 10_000_000_000)
+
+                switch await TunnelManager.shared.runtimeState() {
+                case .connected:
+                    await self.reportVpnStatus("connected")
+                case .connecting:
+                    await self.reportVpnStatus("connecting")
+                case .reconnecting:
+                    await self.reportVpnStatus("reconnecting")
+                case .disconnected:
+                    self.vpnConnected = false
+                    await self.reportVpnStatus("disconnected")
+                    return
+                case .error:
+                    self.vpnConnected = false
+                    await self.reportVpnStatus("error")
+                    return
+                }
+
+                do {
+                    try await Task.sleep(nanoseconds: 5_000_000_000)
+                } catch {
+                    return
+                }
             }
         }
     }
